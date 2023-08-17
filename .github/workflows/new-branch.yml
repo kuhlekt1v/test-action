@@ -3,7 +3,7 @@ name: New Branch Created
 on:
   create
 env:
-  GH_TOKEN: ${{ secrets.GHPROJECT_TOKEN }}
+  GH_TOKEN: ${{ secrets.ACCESS_TOKEN}}
   OWNER: "kuhlekt1v"
   REPO: "test-action"
   
