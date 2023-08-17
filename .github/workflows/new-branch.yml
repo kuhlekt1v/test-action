@@ -16,9 +16,8 @@ jobs:
           issue_num=`echo ${branch_name#*#} | egrep -o '^[^/]+'`
           re='^[0-9]+$'
           if ! [[ $issue_num =~ $re ]] ; then
-            echo "::set-output name=tracked::false"
+            echo "tracked=false" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=tracked::true"
+            echo "tracked=true" >> $GITHUB_OUTPUT
           fi
-          echo "::set-output name=issue_num::$issue_num"
-          
+            echo "issue_num=$issue_num" >> $GITHUB_OUTPUT
