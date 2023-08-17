@@ -2,6 +2,11 @@ name: New Branch Created
 
 on:
   create
+env:
+  GH_TOKEN: ${{ secrets.GHPROJECT_TOKEN }}
+  OWNER: "kuhlekt1v"
+  REPO: "test-action"
+  
 jobs:
   Check-Branch-Name:
     runs-on: ubuntu-latest
@@ -21,3 +26,23 @@ jobs:
             echo "tracked=true" >> $GITHUB_OUTPUT
           fi
             echo "issue_num=$issue_num" >> $GITHUB_OUTPUT
+  Add-Linked-Issue-To-Project:
+    needs: Check-Branch-Name
+    if: needs.Check-Branch-Name.outputs.tracked == 'true'
+    env:
+      ISSUE_NUM: $ {{ needs.Check-Branch-Name.outputs.issue_num }}
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Get Issue $ {{ env.ISSUE_NUM }} Project Item ID
+        run: |
+          gh api graphql -f query='query FindIssueID($user: String! $repo: String! $number: Int!) {
+            repository(owner:"${{ env.OWNER}}",name:"${{ env.REPO}}") {
+              issue(number:${{env.ISSUE_NUM}}) {
+                id,
+                state
+              }
+            }
+          }' > project_data.json
+          echo 'ISSUE_ID='
+           $(jq '.data.repository.issue.id' project_data.json) >> $GITHUB_ENV
+      
