@@ -2,7 +2,7 @@ name: Mark in progress
 on:
   push:
     branches:
-      - */#[0-9]-*
+      - "*#[0-9]*"
 
 jobs:
   move-assigned-card:
