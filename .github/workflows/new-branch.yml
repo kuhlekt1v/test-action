@@ -1,7 +1,12 @@
 name: New Branch Created
 
 on:
-  create
+  push:
+    branches:
+    - '*'
+  create:
+    tags:
+    - '*'
 jobs:
   Check-Branch-Name:
     runs-on: ubuntu-latest
