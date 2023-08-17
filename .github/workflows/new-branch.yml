@@ -39,7 +39,7 @@ jobs:
     steps: 
       - name: Get Issue $ {{ env.ISSUE_NUM }} Project Item ID
         run: |
-          gh api graphql -f query='query FindIssueID($user: String! $repo: String! $number: Int!) {
+          gh api graphql -f query='query FindIssueID {
             repository(owner:"${{ env.OWNER}}",name:"${{ env.REPO}}") {
               issue(number:${{env.ISSUE_NUM}}) {
                 id,
@@ -49,4 +49,3 @@ jobs:
           }' > project_data.json
           echo 'ISSUE_ID='
            $(jq '.data.repository.issue.id' project_data.json) >> $GITHUB_ENV
-      
