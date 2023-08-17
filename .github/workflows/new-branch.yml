@@ -26,8 +26,10 @@ jobs:
             echo "tracked=true" >> $GITHUB_OUTPUT
           fi
             echo "issue_num=$issue_num" >> $GITHUB_OUTPUT
-          echo "$tracked"
-          echo "$issue_num"
+      - name: Print Output Variables
+        run: |
+          echo "Tracked: ${{ steps.step1.outputs.tracked]}"
+          echo "Issue: ${{ steps.step1.outputs.issue_num]}"
   Add-Linked-Issue-To-Project:
     needs: Check-Branch-Name
     if: needs.Check-Branch-Name.outputs.tracked == 'true'
