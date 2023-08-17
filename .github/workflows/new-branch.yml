@@ -1,26 +1,16 @@
 name: New Branch Created
 
 on:
-  push:
-    branches:
-    - '*'
-  create:
-    tags:
-    - '*'
+  create
 jobs:
   Check-Branch-Name:
     runs-on: ubuntu-latest
-    
     outputs:
       issue_num: ${{ steps.step1.outputs.issue_num }}
       tracked: ${{ steps.step1.outputs.tracked }}
     steps:
-      - uses: actions/checkout@v2
-        with:
-          token: ${{ secrets.GHPROJECT_TOKEN }}
       - name: Get Created Issue Number
         id: step1
-      
         run: |
           branch_name=`echo '${{github.event.ref}}'`
           issue_num=`echo ${branch_name#*#} | egrep -o '^[^/]+'`
