@@ -21,11 +21,11 @@ jobs:
           issue_num=`echo ${branch_name#*#} | egrep -o '^[^/]+'`
           re='^[0-9]+$'
           if [[ $issue_num =~ $re ]] ; then
-            echo "tracked=true" >> $GITHUB_OUTPUT
+            echo "tracked=true" >> $GITHUB_ENV
           else
-            echo "tracked=false" >> $GITHUB_OUTPUT
+            echo "tracked=false" >> $GITHUB_ENV
           fi
-            echo "issue_num=$issue_num" >> $GITHUB_OUTPUT
+            echo "issue_num=$issue_num" >> $GITHUB_ENV
       - name: Print Output Variables
         run: |
           echo "Tracked: ${{ steps.step1.outputs.tracked}}"
