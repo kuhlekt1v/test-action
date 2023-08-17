@@ -1,0 +1,9 @@
+name: My first action
+on: create
+jobs:
+  echo-branch-name:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step One
+        run: |
+          echo '${{github.event.ref}}'
