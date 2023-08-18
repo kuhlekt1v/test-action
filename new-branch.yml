@@ -1,0 +1,115 @@
+name: Move Issue To In Progress
+
+on:
+  create:
+    branches:
+      - "*"
+  push:
+    branches:
+      - "*"
+env:
+  GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+  OWNER: "kuhlekt1v"
+  REPO: "StrengthJournal"
+  PROJECT_NUMBER: 1
+  COLUMN_NAME: "In Progress"
+
+jobs:
+  Check-Branch-Name:
+    runs-on: ubuntu-latest
+    outputs:
+      issue_num: ${{ steps.step1.outputs.issue_num }}
+      tracked: ${{ steps.step1.outputs.tracked }}
+    steps:
+      - name: Get Created Issue Number
+        id: step1
+        run: |
+          branch_name=`echo '${{github.event.ref}}'`
+          issue_num=$(echo "${branch_name}" | grep -oP '#\d+' | cut -c 2-)
+          re='^[0-9]+$'
+          if [[ $issue_num =~ $re ]] ; then
+            echo "tracked=true" >> $GITHUB_OUTPUT
+          else
+            echo "tracked=false" >> $GITHUB_OUTPUT
+          fi
+            echo "issue_num=$issue_num" >> $GITHUB_OUTPUT
+      - name: Print Output Variables
+        run: |
+          echo "Tracked: ${{ steps.step1.outputs.tracked }}"
+          echo "Issue: ${{ steps.step1.outputs.issue_num }}"
+  Move-Linked-Issue-To-In-Progress:
+    needs: Check-Branch-Name
+    if: needs.Check-Branch-Name.outputs.tracked == 'true'
+    env:
+      ISSUE_NUM: ${{ needs.Check-Branch-Name.outputs.issue_num }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Issue ${{ env.ISSUE_NUM }} Project Item ID
+        run: |
+          gh api graphql -f query='query FindIssueID {
+            repository(owner:"${{ env.OWNER }}",name:"${{ env.REPO }}") {
+              issue(number:${{ env.ISSUE_NUM }}) {
+                id,
+                state
+              }
+            }
+          }' > project_data.json
+          ISSUE_ID=$(jq -r '.data.repository.issue.id' project_data.json)
+          echo "ISSUE_ID=$ISSUE_ID" >> $GITHUB_ENV
+      - name: Get Project Status Item ID
+        run: |
+          gh api graphql -f query='query{
+            user(login: "${{ env.OWNER }}"){
+              projectV2(number: ${{ env.PROJECT_NUMBER }}) {
+                id
+                fields(first:20) {
+                  nodes {
+                    ... on ProjectV2SingleSelectField {
+                      id
+                      name
+                      options {
+                        id
+                        name
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }' > project_data.json
+
+          echo 'PROJECT_ID='$(jq '.data.user.projectV2.id' project_data.json) >> $GITHUB_ENV
+          echo 'STATUS_FIELD_ID='$(jq '.data.user.projectV2.fields.nodes[] | select(.name== "Status") | .id' project_data.json) >> $GITHUB_ENV
+          echo 'MOVETO_OPTION_ID='$(jq '.data.user.projectV2.fields.nodes[] | select(.name== "Status") | .options[] | select(.name=="${{ env.COLUMN_NAME }}") |.id' project_data.json) >> $GITHUB_ENV
+      - name: Add Issue to Project(beta)
+        run: |
+          item_id="$( gh api graphql -f query='
+            mutation($project:ID!, $pr:ID!) {
+              addProjectV2ItemById(input: {projectId: $project, contentId: $pr}) {
+                item {
+                  id
+                }
+              }
+            }' -f project=${{ env.PROJECT_ID}} -f pr=${{ env.ISSUE_ID}} --jq '.data.addProjectV2ItemById.item.id')"
+
+            echo 'ITEM_ID='$item_id >> $GITHUB_ENV
+      - name: Move Issue Number ${{ env.ISSUE_NUM }} Into ${{ env.COLUMN_NAME }} Column
+        run: |
+          gh api graphql -f query='
+            mutation {
+              updateProjectV2ItemFieldValue(
+                input: {
+                  projectId: ${{ env.PROJECT_ID }}
+                  itemId: "${{ env.ITEM_ID }}"
+                  fieldId: ${{ env.STATUS_FIELD_ID }}
+                  value: { 
+                      singleSelectOptionId: ${{ env.MOVETO_OPTION_ID }}
+                  }
+                }
+              ) 
+              {
+                projectV2Item {
+                  id
+                }
+              }
+            }'
