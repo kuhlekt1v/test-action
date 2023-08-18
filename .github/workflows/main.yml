@@ -1,9 +1,7 @@
 name: Move Pushed To In Progress
 
 on:
-  push:
-    branches:
-      - "*"
+  push
 env:
   GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
   OWNER: "kuhlekt1v"
