@@ -36,7 +36,6 @@ jobs:
     env:
       ISSUE_NUM: ${{ needs.Check-Branch-Name.outputs.issue_num }}
     runs-on: ubuntu-latest
-    outputs: issue_id
     steps:
       - name: Get Issue ${{ env.ISSUE_NUM }} Project Item ID
         run: |
