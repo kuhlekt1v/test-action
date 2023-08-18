@@ -73,10 +73,24 @@ jobs:
           }' > project_data.json
           echo 'PROJECT_ID='$(jq '.data.user.projectV2.id' project_data.json) >> $GITHUB_ENV
           echo 'STATUS_FIELD_ID='$(jq '.data.user.projectV2.fields.nodes[] | select(.name== "Status") | .id' project_data.json) >> $GITHUB_ENV
-          echo 'TODO_OPTION_ID='$(jq '.data.user.projectV2.fields.nodes[] | select(.name== "Status") | .options[] | select(.name=="${{ env.COLUMN_NAME }}") |.id' project_data.json) >> $GITHUB_ENV
-      - name: Print Project Items
-        run: | 
-          echo "PROJECT_ID: $PROJECT_ID"
-          echo "STATUS_FIELD_ID: $STATUS_FIELD_ID"
-          echo "TODO_OPTION_ID: $TODO_OPTION_ID"
-      
+          echo 'MOVETO_OPTION_ID='$(jq '.data.user.projectV2.fields.nodes[] | select(.name== "Status") | .options[] | select(.name=="${{ env.COLUMN_NAME }}") |.id' project_data.json) >> $GITHUB_ENV
+      - name: Move Issue Number ${{ env.ISSUE_NUM }} Into ${{ env.COLUMN_NAME }} Column
+        run: |
+          gh api graphql -f query='
+            mutation {
+              updateProjectV2ItemFieldValue(
+                input: {
+                  projectId: ${{ env.PROJECT_ID }}
+                  itemId: "${{ env.ITEM_ID }}"
+                  fieldId: ${{ env.STATUS_FIELD_ID }}
+                  value: { 
+                      singleSelectOptionId: ${{ env.MOVETO_OPTION_ID }}
+                  }
+                }
+              ) 
+              {
+                projectV2Item {
+                  id
+                }
+              }
+            }'
