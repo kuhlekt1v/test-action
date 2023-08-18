@@ -10,8 +10,8 @@ on:
 env:
   GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
   OWNER: "kuhlekt1v"
-  REPO: "StrengthJournal"
-  PROJECT_NUMBER: 1
+  REPO: "test-action"
+  PROJECT_NUMBER: 2
   COLUMN_NAME: "In Progress"
 
 jobs:
