@@ -71,9 +71,22 @@ jobs:
               }
             }
           }' > project_data.json
+
           echo 'PROJECT_ID='$(jq '.data.user.projectV2.id' project_data.json) >> $GITHUB_ENV
           echo 'STATUS_FIELD_ID='$(jq '.data.user.projectV2.fields.nodes[] | select(.name== "Status") | .id' project_data.json) >> $GITHUB_ENV
           echo 'MOVETO_OPTION_ID='$(jq '.data.user.projectV2.fields.nodes[] | select(.name== "Status") | .options[] | select(.name=="${{ env.COLUMN_NAME }}") |.id' project_data.json) >> $GITHUB_ENV
+      - name: Add Issue to Project(beta)
+        run: |
+          item_id="$( gh api graphql -f query='
+            mutation($project:ID!, $pr:ID!) {
+              addProjectV2ItemById(input: {projectId: $project, contentId: $pr}) {
+                item {
+                  id
+                }
+              }
+            }' -f project=${{ env.PROJECT_ID}} -f pr=${{ env.ISSUE_ID}} --jq '.data.addProjectV2ItemById.item.id')"
+
+            echo 'ITEM_ID='$item_id >> $GITHUB_ENV
       - name: Move Issue Number ${{ env.ISSUE_NUM }} Into ${{ env.COLUMN_NAME }} Column
         run: |
           gh api graphql -f query='
