@@ -47,5 +47,8 @@ jobs:
               }
             }
           }' > project_data.json
-          echo "ISSUE_ID=$(jq -r '.data.repository.issue.id' project_data.json)" >> $GITHUB_ENV
+      - name: Set and Print ISSUE_ID
+        run: |
+          ISSUE_ID=$(jq -r '.data.repository.issue.id' project_data.json)
+          echo "ISSUE_ID=$ISSUE_ID" >> $GITHUB_ENV
           echo "ISSUE_ID: $ISSUE_ID"
