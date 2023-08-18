@@ -24,6 +24,7 @@ jobs:
       - name: Get Created Issue Number
         id: step1
         run: |
+          set -x
           branch_name=`echo '${{github.event.ref}}'`
           issue_num=$(echo "${branch_name}" | grep -oP '#\d+' | cut -c 2-)
           re='^[0-9]+$'
@@ -37,6 +38,7 @@ jobs:
         run: |
           echo "Tracked: ${{ steps.step1.outputs.tracked }}"
           echo "Issue: ${{ steps.step1.outputs.issue_num }}"
+          echo "Branch: $branch_name"
   Move-Linked-Issue-To-In-Progress:
     needs: Check-Branch-Name
     if: needs.Check-Branch-Name.outputs.tracked == 'true'
