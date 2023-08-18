@@ -28,24 +28,23 @@ jobs:
             echo "issue_num=$issue_num" >> $GITHUB_OUTPUT
       - name: Print Output Variables
         run: |
-          echo "Tracked: ${{ steps.step1.outputs.tracked}}"
-          echo "Issue: ${{ steps.step1.outputs.issue_num}}"
+          echo "Tracked: ${{ steps.step1.outputs.tracked }}"
+          echo "Issue: ${{ steps.step1.outputs.issue_num }}"
   Add-Linked-Issue-To-Project:
     needs: Check-Branch-Name
     if: needs.Check-Branch-Name.outputs.tracked == 'true'
     env:
-      ISSUE_NUM: $ {{ needs.Check-Branch-Name.outputs.issue_num }}
+      ISSUE_NUM: ${{ needs.Check-Branch-Name.outputs.issue_num }}
     runs-on: ubuntu-latest
     steps: 
-      - name: Get Issue $ {{ env.ISSUE_NUM }} Project Item ID
+      - name: Get Issue ${{ env.ISSUE_NUM }} Project Item ID
         run: |
           gh api graphql -f query='query FindIssueID {
-            repository(owner:"${{ env.OWNER}}",name:"${{ env.REPO}}") {
-              issue(number:${{env.ISSUE_NUM}}) {
+            repository(owner:"${{ env.OWNER }}",name:"${{ env.REPO }}") {
+              issue(number:${{ env.ISSUE_NUM }}) {
                 id,
                 state
               }
             }
           }' > project_data.json
-          echo 'ISSUE_ID='
-           $(jq '.data.repository.issue.id' project_data.json) >> $GITHUB_ENV
+          echo "ISSUE_ID=$(jq -r '.data.repository.issue.id' project_data.json)" >> $GITHUB_ENV
