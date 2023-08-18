@@ -6,6 +6,7 @@ env:
   OWNER: "kuhlekt1v"
   REPO: "test-action"
   PROJECT_NUMBER: 2
+  COLUMN_NAME: "In Progress"
 
 jobs:
   Check-Branch-Name:
@@ -49,6 +50,33 @@ jobs:
           }' > project_data.json
           ISSUE_ID=$(jq -r '.data.repository.issue.id' project_data.json)
           echo "ISSUE_ID=$ISSUE_ID" >> $GITHUB_ENV
-      - name: Print ISSUE_ID
+      - name: Get Project Status Item ID
         run: |
-          echo "ISSUE_ID: $ISSUE_ID"
+          gh api graphql -f query='query{
+            user(login: "${{ env.OWNER }}"){
+              projectV2(number: ${{ env.PROJECT_NUMBER }}) {
+                id
+                fields(first:20) {
+                  nodes {
+                    ... on ProjectV2SingleSelectField {
+                      id
+                      name
+                      options {
+                        id
+                        name
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }' > project_data.json
+          echo 'PROJECT_ID='$(jq '.data.organization.projectV2.id' project_data.json) >> $GITHUB_ENV
+          echo 'STATUS_FIELD_ID='$(jq '.data.organization.projectV2.fields.nodes[] | select(.name== "Status") | .id' project_data.json) >> $GITHUB_ENV
+          echo 'TODO_OPTION_ID='$(jq '.data.organization.projectV2.fields.nodes[] | select(.name== "Status") | .options[] | select(.name=="${{ env.COLUMN_NAME }}") |.id' project_data.json) >> $GITHUB_ENV
+      - name: Print Project Items
+        run: | 
+          echo "PROJECT_ID: $PROJECT_ID"
+          echo "STATUS_FIELD_ID: $STATUS_FIELD_ID"
+          echo "TODO_OPTION_ID: $TODO_OPTION_ID"
+      
