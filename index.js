@@ -1,6 +1,7 @@
 const core = require("@actions/core");
 const github = require("@actions/github");
 
+// test comment for auto close
 try {
   const nameToGreet = core.getInput("who-to-greet");
   console.log(`Hello ${nameToGreet}!`);
